@@ -1,9 +1,9 @@
 # AI_simulation // Admin_123
 Assestment practice simulation
 
-## Expose n8n with Cloudflare Tunnel
+## Expose n8n with ngrok
 
-Telegram cannot send webhooks to `localhost`, so this project uses a Cloudflare Tunnel to expose `n8n` over HTTPS.
+Telegram cannot send webhooks to `localhost`, so this project uses ngrok to expose `n8n` over HTTPS (free dynamic URLs).
 
 ### 1. Create your local env file
 
@@ -11,24 +11,19 @@ Copy `.env.example` to `.env` and set:
 
 - `N8N_BASIC_AUTH_USER`
 - `N8N_BASIC_AUTH_PASSWORD`
-- `N8N_PUBLIC_URL`
+- `N8N_PUBLIC_URL` (set to ngrok url from localhost:4040)
 - `N8N_PUBLIC_HOST`
-- `CLOUDFLARE_TUNNEL_TOKEN`
+- `NGROK_AUTHTOKEN`
 
 Example public URL:
 
-`https://n8n.your-domain.com`
+`https://abc123.ngrok-free.app` (dynamic, view at http://localhost:4040)
 
-### 2. Create the tunnel in Cloudflare
+### 2. Setup ngrok
 
-In Cloudflare Zero Trust:
-
-1. Go to `Networks` -> `Tunnels`
-2. Create a new tunnel
-3. Choose `Cloudflared`
-4. Add a public hostname like `n8n.your-domain.com`
-5. Point the service to `http://n8n:5678`
-6. Copy the generated tunnel token into `.env` as `CLOUDFLARE_TUNNEL_TOKEN`
+1. Sign up for free at https://ngrok.com
+2. Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken
+3. Add to `.env`: `NGROK_AUTHTOKEN=your_token_here`
 
 ### 3. Start the stack
 
@@ -36,10 +31,15 @@ In Cloudflare Zero Trust:
 docker compose up -d
 ```
 
-### 4. Verify webhook URL inside n8n
+Check `docker compose logs ngrok` for startup.
 
-Once `n8n` is running, it should use the public URL from `N8N_PUBLIC_URL` for webhook registrations.
+### 4. Get ngrok URL and verify
+
+1. `docker compose up -d`
+2. Open http://localhost:4040 -> copy "HTTPS Forwarding URL"
+3. (Optional) Add to .env `N8N_PUBLIC_URL=https://abc.ngrok-free.app` & restart compose for auto webhooks
+4. Access n8n at http://localhost:5678 (admin/admin123), test workflows with ngrok URL
 
 ### 5. Connect Telegram
 
-When you configure the Telegram Trigger or Telegram node, the webhook should now resolve through the public Cloudflare hostname instead of `localhost`.
+Use the ngrok HTTPS URL in Telegram Trigger node's webhook URL/Test URL.

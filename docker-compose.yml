@@ -14,14 +14,16 @@ services:
       - N8N_HOST=${N8N_PUBLIC_HOST:-localhost}
       - N8N_PORT=5678
       - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
-      - N8N_EDITOR_BASE_URL=${N8N_PUBLIC_URL:-http://localhost:5678}
-      - WEBHOOK_URL=${N8N_PUBLIC_URL:-http://localhost:5678}
+      - N8N_EDITOR_BASE_URL=${N8N_PUBLIC_URL}
+      - WEBHOOK_URL=${N8N_PUBLIC_URL}
       - N8N_PROXY_HOPS=1
     restart: unless-stopped
 
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:-}
+  ngrok:
+    image: ngrok/ngrok:latest
+    command: http n8n:5678 --authtoken ${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"
     depends_on:
       - n8n
     restart: unless-stopped

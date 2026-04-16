@@ -1,0 +1,16 @@
+openai>=1.30.0,<2.0.0
+python-dotenv>=1.0.1,<2.0.0
+
+# RAG document loading and chunking
+langchain>=0.2.11,<0.3.0
+langchain-community>=0.2.10,<0.3.0
+langchain-openai>=0.1.17,<0.2.0
+langchain-text-splitters>=0.2.2,<0.3.0
+
+# Vector database
+chromadb>=0.5.5,<0.6.0
+
+# Useful parsing dependencies for local knowledge documents
+markdown>=3.6,<4.0
+pypdf>=4.3.1,<5.0.0
+tiktoken>=0.7.0,<1.0.0

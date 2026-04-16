@@ -1,1 +1,47 @@
 .env
+
+# Local tool state
+.codex
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+
+# Local databases and logs
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# Vector store / embeddings artifacts
+chroma/
+chroma_db/
+data/chroma/
+
+# Runtime n8n data
+n8n-data/.cache/
+n8n-data/.n8n/database.sqlite
+n8n-data/.n8n/database.sqlite-shm
+n8n-data/.n8n/database.sqlite-wal
+n8n-data/.n8n/crash.journal
+n8n-data/.n8n/n8nEventLog*.log
