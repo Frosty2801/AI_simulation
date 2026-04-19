@@ -1,45 +1,173 @@
-# AI_simulation // Admin_123
-Assestment practice simulation
+# PetCare Medellín - AI Automation System
 
-## Expose n8n with ngrok
+Sistema de automatización con IA para la clínica veterinaria PetCare Medellín. Maneja consultas de múltiples canales (Telegram, email, formularios web) usando clasificación de mensajes y RAG (Retrieval-Augmented Generation).
 
-Telegram cannot send webhooks to `localhost`, so this project uses ngrok to expose `n8n` over HTTPS (free dynamic URLs).
+## Características
 
-### 1. Create your local env file
+- **Recepción multi-canal**: Telegram, Email, Webhooks
+- **Clasificación automática**: 5 categorías (URGENCIA, AGENDAMIENTO, CONSULTA, SEGUIMIENTO, ADMINISTRATIVA)
+- **RAG**: Retrieval-Augmented Generation con ChromaDB
+- **Soporte Ollama**: Embeddings y LLM locales
+- **Tests**: Suite completa de tests unitarios
 
-Copy `.env.example` to `.env` and set:
+## Requisitos
 
-- `N8N_BASIC_AUTH_USER`
-- `N8N_BASIC_AUTH_PASSWORD`
-- `N8N_PUBLIC_URL` (set to ngrok url from localhost:4040)
-- `N8N_PUBLIC_HOST`
-- `NGROK_AUTHTOKEN`
+- Python 3.10+
+- Docker (para n8n + ngrok)
+- Ollama (opcional, para embeddings/LLM locales)
 
-Example public URL:
+## Instalación
 
-`https://abc123.ngrok-free.app` (dynamic, view at http://localhost:4040)
-
-### 2. Setup ngrok
-
-1. Sign up for free at https://ngrok.com
-2. Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken
-3. Add to `.env`: `NGROK_AUTHTOKEN=your_token_here`
-
-### 3. Start the stack
+### 1. Clonar y configurar entorno
 
 ```bash
-docker compose up -d
+# Clonar repositorio
+git clone https://github.com/Frosty2801/AI_simulation.git
+cd AI_simulation
+
+# Crear entorno virtual
+python -m venv .venv
+
+# Activar (Windows)
+.venv\Scripts\activate
+
+# Activar (Linux/Mac)
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
 ```
 
-Check `docker compose logs ngrok` for startup.
+### 2. Configurar variables de entorno
 
-### 4. Get ngrok URL and verify
+Copiar `.env.example` a `.env` y configurar:
 
-1. `docker compose up -d`
-2. Open http://localhost:4040 -> copy "HTTPS Forwarding URL"
-3. (Optional) Add to .env `N8N_PUBLIC_URL=https://abc.ngrok-free.app` & restart compose for auto webhooks
-4. Access n8n at http://localhost:5678 (admin/admin123), test workflows with ngrok URL
+```bash
+# Embeddings provider: openai | ollama
+EMBEDDING_PROVIDER=ollama
 
-### 5. Connect Telegram
+# OpenAI (si usa openai)
+OPENAI_API_KEY=sk-...
+OPENAI_EMBED_MODEL=text-embedding-3-small
 
-Use the ngrok HTTPS URL in Telegram Trigger node's webhook URL/Test URL.
+# Ollama (si usa ollama)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_EMBED_MODEL=nomic-embed-text
+OLLAMA_MODEL=llama3.2
+
+# Document Indexing
+DOCS_DIR=docs
+CHROMA_DB_DIR=./chroma_db
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+```
+
+### 3. Indexar documentos
+
+```bash
+python src/index_documents.py --test
+```
+
+Esto cargará los 4 documentos del negocio y creará el vector store en ChromaDB.
+
+## Estructura del Proyecto
+
+```
+AI_simulation/
+├── docs/                      # Documentos del negocio
+│   ├── petcare_faq.md
+│   ├── petcare_policies.md
+│   ├── petcare_protocols.md
+│   └── petcare_services_pricing.md
+├── src/
+│   ├── core/
+│   │   ├── embeddings.py      # Embeddings (OpenAI/Ollama)
+│   │   ├── llm.py             # LLM Client + Clasificación
+│   │   └── retriever.py       # ChromaDB RAG
+│   ├── data/
+│   │   ├── loader.py          # Carga de documentos
+│   │   └── chunkers.py        # Text chunking
+│   └── index_documents.py     # Script de indexación
+├── tests/                     # Suite de tests
+├── workflows/                 # Workflows n8n
+├── docker-compose.yml         # n8n + ngrok
+├── requirements.txt           # Dependencias Python
+└── pytest.ini                 # Configuración de tests
+```
+
+## Uso
+
+### Indexar documentos
+
+```bash
+python src/index_documents.py --reset --test
+```
+
+### Ejecutar tests
+
+```bash
+# Todos los tests
+python -m pytest tests/ -v
+
+# Tests específicos
+python -m pytest tests/test_loader.py -v
+
+# Solo unit tests (sin integration)
+python -m pytest tests/ -v -m "not integration"
+```
+
+### Usar el clasificador
+
+```python
+from src.core.llm import LLMClient
+
+client = LLMClient(provider="ollama")
+result = client.classify_message("Mi perro no puede respirar")
+print(result.categoria)  # URGENCIA
+print(result.prioridad)  # ALTA
+```
+
+### Retrieval RAG
+
+```python
+from src.core.retriever import VectorStoreManager
+
+manager = VectorStoreManager(
+    persist_directory="./chroma_db",
+    embedding_provider="ollama"
+)
+
+results = manager.similarity_search("vacunas para perros", k=4)
+for doc in results:
+    print(doc.page_content)
+```
+
+## n8n + Telegram
+
+Para exponer n8n a internet (necesario para Telegram webhooks):
+
+```bash
+# Configurar ngrok en .env
+NGROK_AUTHTOKEN=tu_token
+
+# Iniciar stack
+docker compose up -d
+
+# Obtener URL de ngrok
+# http://localhost:4040
+```
+
+## Tecnologías
+
+| Componente | Tecnología |
+|------------|------------|
+| Orquestación | n8n |
+| Exposición | ngrok |
+| RAG | LangChain + ChromaDB |
+| Embeddings | OpenAI / Ollama |
+| LLM | OpenAI / Ollama |
+| Testing | pytest |
+
+## Licencia
+
+MIT

@@ -37,7 +37,14 @@ DEFAULT_CHROMA_DIR = os.getenv("CHROMA_DB_DIR", "./chroma_db")
 DEFAULT_COLLECTION = os.getenv("CHROMA_COLLECTION", "petcare_documents")
 DEFAULT_CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
 DEFAULT_CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200"))
-DEFAULT_EMBEDDING_MODEL = os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small")
+# Default embedding model based on provider
+def get_default_embedding_model(provider: str = None) -> str:
+    provider = provider or os.getenv("EMBEDDING_PROVIDER", "openai")
+    if provider == "ollama":
+        return os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
+    return os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small")
+
+DEFAULT_EMBEDDING_MODEL = get_default_embedding_model()
 
 
 def get_document_files(docs_dir: str = None) -> List[str]:
@@ -177,10 +184,13 @@ def index_documents(
     
     # Initialize vector store manager
     print("\n--- Creating Vector Store ---")
+    embedding_model = get_default_embedding_model(provider)
+    print(f"  Embedding model: {embedding_model}")
+    
     manager = VectorStoreManager(
         persist_directory=chroma_dir,
         embedding_provider=provider,
-        embedding_model=DEFAULT_EMBEDDING_MODEL,
+        embedding_model=embedding_model,
         collection_name=collection
     )
     
