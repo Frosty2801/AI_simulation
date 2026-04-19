@@ -6,10 +6,8 @@ support for multiple providers.
 """
 
 import os
-import shutil
-from langhain_core.embeddings import Embeddings
+from typing import Optional
 from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma
 from langchain_community.embeddings import OllamaEmbeddings
 
 def get_openai_embeddings(

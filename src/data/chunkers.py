@@ -3,9 +3,9 @@ from typing import List
 
 from langchain_text_splitters import (
     RecursiveCharacterTextSplitter,
-    characterTextSplitter
+    CharacterTextSplitter
 )
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 
 def chunk_text(text: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> List[Document]:
     """
